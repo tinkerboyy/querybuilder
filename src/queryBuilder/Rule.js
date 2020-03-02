@@ -2,21 +2,26 @@ import React from 'react';
 import Selector from './Selector';
 import ValueEditor from './ValueEditor';
 import QueryAction from './QueryAction';
+import FunctionEditor from './FunctionEditor';
 
 const Rule = ({
   id,
   parentId,
   field,
   operator,
+  func,
   value,
+  functionValue,
   translations,
   schema: {
     fields,
     getInputType,
     getLevel,
     getOperators,
+    getFunctions,
     getValueEditorType,
     getValues,
+    getFuncValues,
     onPropChange,
     onRuleRemove
   }
@@ -33,8 +38,16 @@ const Rule = ({
     onElementChanged('operator', value);
   };
 
+  const onFunctionChanged = value => {
+    onElementChanged('function', value);
+  };
+
   const onValueChanged = value => {
     onElementChanged('value', value);
+  };
+
+  const onFunctionValueChanged = value => {
+    onElementChanged('functionValue', value);
   };
 
   const removeRule = event => {
@@ -62,9 +75,30 @@ const Rule = ({
         field={field}
         fieldData={fieldData}
         title={translations.operators.title}
+        options={getFunctions(field)}
+        value={func}
+        handleOnChange={onFunctionChanged}
+        level={level}
+      />
+      <Selector
+        field={field}
+        fieldData={fieldData}
+        title={translations.operators.title}
         options={getOperators(field)}
         value={operator}
         handleOnChange={onOperatorChanged}
+        level={level}
+      />
+      <FunctionEditor
+        field={field}
+        fieldData={fieldData}
+        title={translations.value.title}
+        operator={operator}
+        value={functionValue}
+        type={getValueEditorType(field, operator)}
+        inputType={getInputType(field, operator)}
+        values={getFuncValues(field, operator)}
+        handleOnChange={onFunctionValueChanged}
         level={level}
       />
       <ValueEditor
@@ -95,7 +129,8 @@ Rule.defaultProps = {
   field: null,
   operator: null,
   value: null,
-  schema: null
+  schema: null,
+  func: null
 };
 
 export default Rule;

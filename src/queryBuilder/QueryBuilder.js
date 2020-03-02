@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuid } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
-import { Formik, Form, Field, FieldArray } from 'formik';
 import RuleGroup from './RuleGroup';
 import { generateValidQuery, getLevel, findRule, isRuleGroup } from '../utils';
 
@@ -39,6 +38,15 @@ const defaultTranslations = {
     title: 'Invert this group'
   }
 };
+
+const defaultFunctions = [
+  { name: 'test', label: 'test' },
+  { name: 'includes', label: 'includes' },
+  { name: 'indexOf', label: 'indexOf' },
+  { name: 'endsWith', label: 'Ends with' },
+  { name: 'startsWith', label: '!Starts with' },
+  { name: 'length', label: 'length' }
+];
 
 const defaultOperators = [
   { name: 'includes', label: 'includes' },
@@ -82,7 +90,9 @@ const QueryBuilder = props => {
       id: `r-${uuid()}`,
       field,
       value: '',
-      operator: getOperators(field)[0].name
+      operator: getOperators(field)[0].name,
+      functions: '',
+      functionValue: ''
     };
   };
 
@@ -122,20 +132,54 @@ const QueryBuilder = props => {
     return [];
   };
 
+  const getFuncValues = (field, operator, functions) => {
+    if (props.getValues) {
+      const vals = props.getFuncValues(field, operator, functions);
+      if (vals) return vals;
+    }
+
+    return [];
+  };
+
   const getOperators = field => {
     if (props.getOperators) {
       const ops = props.getOperators(field);
       if (ops) return ops;
     }
 
-    return props.operators;
+    return operators;
+  };
+
+  const getFunctions = field => {
+    if (props.getFunctions) {
+      const ops = props.getFunctions(field);
+      if (ops) return ops;
+    }
+
+    return props.functions;
   };
 
   const getRuleDefaultValue = rule => {
     let value = '';
 
     const values = getValues(rule.field, rule.operator);
+    if (values.length) {
+      value = values[0].name;
+    } else {
+      const editorType = getValueEditorType(rule.field, rule.operator);
 
+      if (editorType === 'checkbox') {
+        value = false;
+      }
+    }
+
+    return value;
+  };
+
+  const getRuleFuncDefaultValue = rule => {
+    let value = '';
+
+    const values = getFuncValues(rule.field, rule.operator, rule.functionValue);
     if (values.length) {
       value = values[0].name;
     } else {
@@ -154,7 +198,8 @@ const QueryBuilder = props => {
     const parent = findRule(parentId, rootCopy);
     parent.rules.push({
       ...rule,
-      value: getRuleDefaultValue(rule)
+      value: getRuleDefaultValue(rule),
+      functionValue: getRuleFuncDefaultValue(rule)
     });
     setRoot(rootCopy);
     _notifyQueryChange(rootCopy);
@@ -172,11 +217,12 @@ const QueryBuilder = props => {
     const rootCopy = { ...root };
     const rule = findRule(ruleId, rootCopy);
     Object.assign(rule, { [prop]: value });
-
     if (props.resetOnFieldChange && prop === 'field') {
       Object.assign(rule, {
         operator: getOperators(rule.field)[0].name,
-        value: getRuleDefaultValue(rule)
+        function: getFunctions(rule.field)[0].name,
+        value: getRuleDefaultValue(rule),
+        functionValue: getRuleFuncDefaultValue(rule)
       });
     }
 
@@ -231,9 +277,11 @@ const QueryBuilder = props => {
     getLevel: getLevelFromRoot,
     isRuleGroup,
     getOperators,
+    getFunctions,
     getValueEditorType,
     getInputType,
     getValues,
+    getFuncValues,
     showCombinatorsBetweenRules,
     showNotToggle
   };
@@ -271,6 +319,9 @@ QueryBuilder.propTypes = {
   ),
   combinators: PropTypes.arrayOf(
     PropTypes.shape({ name: PropTypes.string, label: PropTypes.string })
+  ),
+  functions: PropTypes.arrayOf(
+    PropTypes.shape({ name: PropTypes.string, label: PropTypes.string })
   )
 };
 
@@ -278,7 +329,8 @@ QueryBuilder.defaultProps = {
   query: null,
   fields: [],
   operators: defaultOperators,
-  combinators: defaultCombinators
+  combinators: defaultCombinators,
+  functions: defaultFunctions
 };
 
 export default QueryBuilder;

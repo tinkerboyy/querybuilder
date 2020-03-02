@@ -31,13 +31,17 @@ const preparedQueries = {
         id: `r-${uuid()}`,
         field: 'firstName',
         value: 'Steve',
-        operator: 'equals'
+        operator: 'equals',
+        function: '',
+        functionValue: 'mm'
       },
       {
         id: `r-${uuid()}`,
         field: 'lastName',
-        value: 'Vai',
-        operator: 'equals'
+        value: ['Vai', 'ttt'],
+        operator: 'between',
+        function: '',
+        functionValue: ''
       }
     ],
     combinator: 'and',
@@ -49,20 +53,26 @@ const preparedQueries = {
       {
         field: 'age',
         id: `r-${uuid()}`,
-        operator: '>',
-        value: '28'
+        operator: 'equals',
+        value: '28',
+        function: '',
+        functionValue: ''
       },
       {
         field: 'isMusician',
         id: `r-${uuid()}`,
         operator: 'equals',
-        value: true
+        value: true,
+        function: '',
+        functionValue: ''
       },
       {
         field: 'instrument',
         id: `r-${uuid()}`,
-        operator: '=',
-        value: 'Guitar'
+        operator: 'equals',
+        value: 'Guitar',
+        function: '',
+        functionvalue: ''
       }
     ],
     combinator: 'or',
@@ -76,6 +86,17 @@ const preparedQueries = {
 };
 
 const getOperators = field => {
+  switch (field) {
+    case 'instrument':
+    case 'isMusician':
+      return [{ name: '=', label: 'is' }];
+
+    default:
+      return null;
+  }
+};
+
+const getFunctions = field => {
   switch (field) {
     case 'instrument':
     case 'isMusician':
@@ -134,10 +155,32 @@ const getValues = (field, operator) => {
   }
 };
 
+const getFuncValues = (field, operator, functions) => {
+  switch (field) {
+    case 'instrument':
+      return [
+        { name: 'Guitar', label: 'Guitar' },
+        { name: 'Piano', label: 'Piano' },
+        { name: 'Vocals', label: 'Vocals' },
+        { name: 'Drums', label: 'Drums' }
+      ];
+
+    case 'gender':
+      return [
+        { name: 'M', label: 'Male' },
+        { name: 'F', label: 'Female' },
+        { name: 'O', label: 'Other' }
+      ];
+
+    default:
+      return [];
+  }
+};
+
 function App() {
-  const [query, setQuery] = useState(preparedQueries.primary);
-  const [fields, setFields] = useState(preparedFields.primary);
-  const [format, setFormat] = useState('json');
+  const [query, setQuery] = useState(preparedQueries.secondary);
+  const [fields, setFields] = useState(preparedFields.secondary);
+  // const [format, setFormat] = useState('json');
   const [
     showCombinatorsBetweenRules,
     setShowCombinatorsBetweenRules
@@ -157,11 +200,12 @@ function App() {
 
   const handleQueryChange = query => {
     setQuery(query);
+    console.log(query);
   };
 
   return (
     <div>
-      <button onClick={() => loadQuery('primary')}>Load primary query</button>
+      <button onClick={() => loadQuery('secondary')}>Load primary query</button>
 
       <QueryBuilder
         query={query}
@@ -172,6 +216,7 @@ function App() {
         getValueEditorType={getValueEditorType}
         getInputType={getInputType}
         getValues={getValues}
+        getFuncValues={getFuncValues}
         showCombinatorsBetweenRules={showCombinatorsBetweenRules}
         showNotToggle={showNotToggle}
         resetOnFieldChange={resetOnFieldChange}

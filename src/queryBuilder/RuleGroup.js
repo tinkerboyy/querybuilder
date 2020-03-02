@@ -113,8 +113,10 @@ const RuleGroup = props => {
             <Rule
               id={r.id}
               field={r.field}
+              functionValue={r.functionValue}
               value={r.value}
               operator={r.operator}
+              func={r.function}
               schema={schema}
               parentId={id}
               translations={translations}

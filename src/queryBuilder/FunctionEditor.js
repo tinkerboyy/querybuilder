@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const ValueEditor = ({
+const FunctionEditor = ({
   operator,
   value,
   handleOnChange,
@@ -61,22 +61,6 @@ const ValueEditor = ({
       );
 
     default:
-      if (operator === 'between' || operator === 'in')
-        return (
-          <>
-            {value.map((v, i) => (
-              <span key={i}>
-                <input
-                  type={inputType || 'text'}
-                  value={v}
-                  title={title}
-                  className={className}
-                  onChange={e => handleOnChange(e.target.value)}
-                />
-              </span>
-            ))}
-          </>
-        );
       return (
         <input
           type={inputType || 'text'}
@@ -89,9 +73,9 @@ const ValueEditor = ({
   }
 };
 
-ValueEditor.displayName = 'ValueEditor';
+FunctionEditor.displayName = 'FunctionEditor';
 
-ValueEditor.propTypes = {
+FunctionEditor.propTypes = {
   field: PropTypes.string,
   operator: PropTypes.string,
   value: PropTypes.any,
@@ -103,4 +87,4 @@ ValueEditor.propTypes = {
   values: PropTypes.arrayOf(PropTypes.object)
 };
 
-export default ValueEditor;
+export default FunctionEditor;
